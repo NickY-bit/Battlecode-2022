@@ -10,17 +10,22 @@ public strictfp class Soldier extends Base {
     }
 
     public void loop() throws GameActionException{
-        RobotInfo[] bots = rc.senseNearbyRobots();
-        for (RobotInfo bot : bots) {
-            if (bot.getTeam() == rc.getTeam().opponent()) {
-                if (rc.canAttack(bot.getLocation())) {
-                    rc.attack(bot.getLocation());
-                } else {
-                    moveTowards(bot.getLocation());
+        while (true) {
+            RobotInfo[] bots = rc.senseNearbyRobots();
+            if (rc.isActionReady()){
+                for (RobotInfo bot : bots) {
+                    if (bot.getTeam() == rc.getTeam().opponent()) {
+                        if (rc.canAttack(bot.getLocation())) {
+                            rc.attack(bot.getLocation());
+                        } else {
+                            moveTowards(bot.getLocation());
+                        }
+                    } else {
+                        moveRng();
+                    }
                 }
-            } else {
-                moveRng();
             }
+            Clock.yield();
         }
     }
 }

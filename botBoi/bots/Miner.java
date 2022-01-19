@@ -10,6 +10,11 @@ public strictfp class Miner extends Base {
     }
 
     public void loop() throws GameActionException{
-
+        while(true) {
+            if (rc.isActionReady()) {
+                moveRng();
+            }
+            Clock.yield();
+        }
     }
 }
