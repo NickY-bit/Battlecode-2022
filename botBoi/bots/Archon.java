@@ -14,8 +14,8 @@ public strictfp class Archon extends Base {
 
         public void loop() throws GameActionException{
                 while (true) {
-                        if (unitProd % 5 == 0) {
-                                tryBuild(RobotType.SOLDIER);
+                        if (unitProd % 5 == 0) { //accidentally made production balanced since soldiers are more expensive than miners,
+                                tryBuild(RobotType.SOLDIER); //when an archon builds a soldier, it has to wait for every other archon to build miners.
                         } else {
                                 tryBuild(RobotType.MINER);
                         }
