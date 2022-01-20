@@ -6,6 +6,7 @@ import java.util.*;
 public strictfp class Archon extends Base {
 
         static int turn = 0;
+        static int unitProd = 1;
 
         public Archon(RobotController rc) {
                 super(rc);
@@ -13,11 +14,12 @@ public strictfp class Archon extends Base {
 
         public void loop() throws GameActionException{
                 while (true) {
-                        switch(turn % 4) {
-                                case 0: tryBuild(RobotType.MINER);
-                                default: tryBuild(RobotType.SOLDIER);
+                        if (unitProd % 5 == 0) {
+                                tryBuild(RobotType.SOLDIER);
+                        } else {
+                                tryBuild(RobotType.MINER);
                         }
-                        System.out.println("I end my turn");
+                        System.out.println(unitProd);
                         Clock.yield();
                 }
         }
@@ -39,6 +41,7 @@ public strictfp class Archon extends Base {
                 }
                 if(i < 8 && rc.canBuildRobot(t, directions[i]) && rc.isActionReady()) {
                         rc.buildRobot(t, directions[i]);
+                        unitProd++;
                 } else{
                         //return -3;
                 }
