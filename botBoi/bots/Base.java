@@ -2,6 +2,9 @@ package botBoi.bots;
 
 import battlecode.common.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract strictfp class Base {
     //East - 1 = Northeast, East + 1 = Southeast, same with west
     static final Direction[] directions = {
@@ -16,11 +19,12 @@ public abstract strictfp class Base {
     };
 
     public final RobotController rc;
-    public Base(final RobotController rc) {
-        this.rc = rc;
-    }
     public abstract void loop() throws GameActionException;
-    public int savedIndex = -1; //index for the array
+    public static int savedIndex;
+    public Team team;
+    public Base(final RobotController rc) {
+        this.rc = rc; savedIndex = -1; team = rc.getTeam();
+    }
 
     static final int UNIT_VIS_RAD = 20;
 
@@ -67,7 +71,7 @@ public abstract strictfp class Base {
         else if (randomNum == 3) {
             tryMove(Direction.SOUTHEAST);
         }
-        else {
+        else{
             tryMove(Direction.SOUTHWEST);
         }
     }
@@ -189,8 +193,19 @@ public abstract strictfp class Base {
         rc.writeSharedArray(ind, 0);
     }
 
+    public void wipeComm() throws GameActionException{ //should only be used for debugging but probably wont be
+        for(int i = 0; i < 64; i++) {
+            rc.writeSharedArray(i, 0);
+        }
+    }
+
     public MapLocation readComms(int ind) throws GameActionException{
         int info = rc.readSharedArray(ind);
+
+        if (info == 0) {
+            return null;
+        }
+
         MapLocation target;
         info = info % 10000;
         int x = ((info / 1000) * 10) + ((info % 1000) / 100);
@@ -199,6 +214,51 @@ public abstract strictfp class Base {
         target = new MapLocation(x, y);
 
         return target;
+    }
+
+    public boolean msgAlreadyExists(int fir, MapLocation tar) throws GameActionException{
+        int sec = tar.x / 10;
+        int thi = tar.x % 10;
+        int fou = tar.y / 10;
+        int fiv = tar.y % 10;
+
+        int msg = (fir * 10000) + (sec * 1000) + (thi * 100) + (fou * 10) + fiv;
+
+        for (int i = 0; i < 64; i++) {
+            if (rc.readSharedArray(i) == msg) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int getNumUnits(RobotInfo[] l, RobotType t) {
+        int num = 0;
+        for (RobotInfo b : l) {
+            if (b.type == t) {
+                num++;
+            }
+        }
+        return num;
+    }
+
+    public RobotInfo[] getArrUnits(RobotInfo[] l, RobotType t) {
+        List<RobotInfo> units = new ArrayList<RobotInfo>();
+
+        for (RobotInfo b : l) {
+            if (b.type == t) {
+                units.add(b);
+            }
+        }
+
+        return units.toArray(new RobotInfo[0]);
+    }
+
+    public int distanceTo(MapLocation self, MapLocation targ) {
+        int dx = targ.x - self.x;
+        int dy = targ.y - self.y;
+        int d = (int) Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+        return d;
     }
 
 }
