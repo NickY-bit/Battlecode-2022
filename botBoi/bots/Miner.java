@@ -10,7 +10,7 @@ public strictfp class Miner extends Base {
 
     public void loop() throws GameActionException{
 
-        int p = 1 + (int)(Math.random() * 3);
+        int p = 1 + (int)(Math.random() * 4);
         MapLocation target = new MapLocation(-1, -1);
 
         while(true) {
@@ -51,10 +51,13 @@ public strictfp class Miner extends Base {
                     }
                 }
             }
-            if (savedIndex >= 0 && Math.pow(distanceTo(me, target), 2) < 16) {
-                if (ttlPb < 200) {
+            if (Math.pow(distanceTo(me, target), 2) < 16 && ttlPb < 200) {
+                System.out.println("Vein depleted at " + target);
+                if (savedIndex >= 0) {
                     resetComm(savedIndex);
                     savedIndex = -1;
+                } else {
+                    resetComm(getInd(4, target));
                 }
             }
 

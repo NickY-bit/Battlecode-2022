@@ -9,7 +9,7 @@ public strictfp class Archon extends Base {
         final int NUM_ARCHON = rc.getArchonCount();
         int reserve = 75 * NUM_ARCHON;
         boolean wait = false;
-        int soldierProd = 3;
+        double soldierProd = 3;
 
         public Archon(RobotController rc) {
                 super(rc);
@@ -47,7 +47,11 @@ public strictfp class Archon extends Base {
                         }//*/
 
                         if (turn > 500) {
-                                soldierProd = 2;
+                                if (archonFound()) {
+                                        soldierProd = 1.2;
+                                } else {
+                                        soldierProd = 2;
+                                }
                         }
 
                         //comms stuff

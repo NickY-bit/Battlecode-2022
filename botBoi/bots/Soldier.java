@@ -13,7 +13,7 @@ public strictfp class Soldier extends Base {
     public void loop() throws GameActionException{
 
         int priority = 6;
-        int p = 1 + (int)(Math.random() * 3);
+        int p = 1 + (int)(Math.random() * 4);
         MapLocation target = new MapLocation(-1, -1);
 
         while (true) {

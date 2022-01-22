@@ -4,6 +4,7 @@ import battlecode.common.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public abstract strictfp class Base {
     //East - 1 = Northeast, East + 1 = Southeast, same with west
@@ -63,21 +64,21 @@ public abstract strictfp class Base {
         MapLocation loc = rc.getLocation();
         if (!rc.onTheMap(loc.translate(0, vis))) {
             if (!rc.onTheMap(loc.translate(vis, 0))) {
-                tryMove(Direction.NORTH);
-            } else {
-                tryMove(Direction.WEST);
-            }
-        } else if (!rc.onTheMap(loc.translate(vis, 0))) {
-            if (!rc.onTheMap(loc.translate(0, -vis))) {
-                tryMove(Direction.EAST);
-            } else {
-                tryMove(Direction.NORTH);
-            }
-        } else if (!rc.onTheMap(loc.translate(0, -vis))) {
-            if (!rc.onTheMap(loc.translate(-vis, 0))) {
                 tryMove(Direction.SOUTH);
             } else {
                 tryMove(Direction.EAST);
+            }
+        } else if (!rc.onTheMap(loc.translate(vis, 0))) {
+            if (!rc.onTheMap(loc.translate(0, -vis))) {
+                tryMove(Direction.WEST);
+            } else {
+                tryMove(Direction.SOUTH);
+            }
+        } else if (!rc.onTheMap(loc.translate(0, -vis))) {
+            if (!rc.onTheMap(loc.translate(-vis, 0))) {
+                tryMove(Direction.NORTH);
+            } else {
+                tryMove(Direction.WEST);
             }
         } else {
             tryMove(Direction.SOUTH);
@@ -106,9 +107,9 @@ public abstract strictfp class Base {
         if (p == 1) {
             followEdge();
         } else if (p == 2) {
-            followEdgeRev();
-        } else {
             randomDiag();
+        } else {
+            followEdgeRev();
         }
     }
 
@@ -268,6 +269,22 @@ public abstract strictfp class Base {
         return false;
     }
 
+    public int getInd(int fir, MapLocation tar) throws GameActionException{
+        int sec = tar.x / 10;
+        int thi = tar.x % 10;
+        int fou = tar.y / 10;
+        int fiv = tar.y % 10;
+
+        int msg = (fir * 10000) + (sec * 1000) + (thi * 100) + (fou * 10) + fiv;
+        for(int i = 0; i < 64; i++) {
+            if (rc.readSharedArray(i) == msg) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     /**
      * Write a message to the sharedArray of bots' locations
      * @param b array of robots to be tagged
@@ -350,6 +367,16 @@ public abstract strictfp class Base {
         y /= locs.length;
 
         return new MapLocation(x, y);
+    }
+
+    public boolean archonFound() throws GameActionException{
+        for (int i = 0; i < 64; i++) {
+            int info = rc.readSharedArray(i);
+            if (info / 10000 == 1) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
