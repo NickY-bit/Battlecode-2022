@@ -35,13 +35,11 @@ public strictfp class Soldier extends Base {
                 resetComm(savedIndex);
                 savedIndex = -1;
             } else {
-                attackRng(enmy);
                 int p = 1 + (int)(Math.random() * ((2 - 1) + 1));
                 if (p == 1) {
                     followEdge();
                 }
                 else {
-                    followEdge();
                     randomDiag();
                 }
             }
