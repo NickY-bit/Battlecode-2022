@@ -8,7 +8,6 @@ public strictfp class Archon extends Base {
         static int unitProd = 0;
         final int NUM_ARCHON = rc.getArchonCount();
         int reserve = 75 * NUM_ARCHON;
-        final Team team = rc.getTeam();
         boolean wait = false;
         int soldierProd = 3;
 
@@ -39,24 +38,35 @@ public strictfp class Archon extends Base {
                                 //System.out.println("I am waiting");
                         }
 
+                        for (int i = 0; i < 64; i++) {
+                                if (rc.readSharedArray(i) != 0) {
+                                        System.out.println("Msg at index " + i + " is " + rc.readSharedArray(i));
+                                } else if (i == 63) {
+                                        System.out.println("empty");
+                                }
+                        }//*/
+
                         if (turn > 500) {
                                 soldierProd = 2;
                         }
 
-                        if (enmy.length > 0) {
+                        //comms stuff
+                        if (enmy.length > 0 && savedIndex < 0) {
                                 if (getNumUnits(enmy, RobotType.SOLDIER) > 0) {
                                         for (int i = 0; i < 64; i++) {
                                                 int arr = rc.readSharedArray(i);
                                                 if (arr == 0) {
                                                         writeComms(2, rc.getLocation(), i);
                                                         savedIndex = i;
+                                                        System.out.println("I'm in danger");
                                                         break;
                                                 }
                                         }
-                                } else if (savedIndex >= 0){
-                                        resetComm(savedIndex);
-                                        savedIndex = -1;
                                 }
+                        } else if (savedIndex >= 0 && enmy.length == 0){
+                                resetComm(savedIndex);
+                                System.out.println(savedIndex + ", " + readComms(savedIndex));
+                                savedIndex = -1;
                         }
 
                         if (!wait) {
@@ -103,16 +113,6 @@ public strictfp class Archon extends Base {
                         return 0;
                 }
                 return -2;
-        }
-
-        private int getNumUnits(RobotInfo[] l, RobotType t) throws GameActionException {
-                int num = 0;
-                for (RobotInfo b : l) {
-                        if (b.type == t) {
-                                num++;
-                        }
-                }
-                return num;
         }
 
         private void healLowest(RobotInfo[] arr, RobotType t) throws GameActionException{
