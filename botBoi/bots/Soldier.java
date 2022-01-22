@@ -100,9 +100,15 @@ public strictfp class Soldier extends Base {
                 System.out.println("Threat neutralized " + rc.readSharedArray(savedIndex));
                 savedIndex = -1;
             } else {
-                //System.out.println("Arr index is " + savedIndex + " when it should be -1");
-                attackRng(enmy);
-                followEdge();//replace this with the sometimes diagonal thing
+                int p = 1 + (int)(Math.random() * 2);
+                if (!attackRng(enmy)) {
+                    if (p == 1) {
+                       followEdge();
+                    }
+                    else {
+                       randomDiag();
+                    }
+                }
             }
 
             Clock.yield();

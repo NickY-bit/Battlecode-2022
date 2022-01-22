@@ -71,7 +71,7 @@ public abstract strictfp class Base {
         else if (randomNum == 3) {
             tryMove(Direction.SOUTHEAST);
         }
-        else if (randomNum == 4) {
+        else{
             tryMove(Direction.SOUTHWEST);
         }
     }
