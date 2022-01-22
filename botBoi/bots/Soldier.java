@@ -27,13 +27,15 @@ public strictfp class Soldier extends Base {
             if (rc.isActionReady()){
                 for (RobotInfo bot : bots) {
                     if (bot.getTeam() == rc.getTeam().opponent()) {
-                        if (rc.canAttack(bot.getLocation())) {
+                        if (rc.canAttack(bot.location)) {
                             rc.attack(bot.getLocation());
                         } else {
-                            moveTowards(bot.getLocation());
+                            tryMove(rc.getLocation().directionTo(bot.location));
                         }
                     } else {
-                        moveRng();
+                        if (rc.isActionReady()) {
+                            followEdge();
+                        }
                     }
                 }
             }

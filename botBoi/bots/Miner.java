@@ -27,7 +27,7 @@ public strictfp class Miner extends Base {
             }
 
             if (rc.isActionReady()) {
-                moveRng();
+                followEdge();
             }
             Clock.yield();
         }

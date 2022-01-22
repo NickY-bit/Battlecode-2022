@@ -6,46 +6,101 @@ import java.util.*;
 public strictfp class Archon extends Base {
 
         static int turn = 0;
-        static int unitProd = 1;
+        static int unitProd = 0;
+        final int NUM_ARCHON = rc.getArchonCount();
+        int reserve = 75 * NUM_ARCHON;
+        final Team team = rc.getTeam();
+        boolean wait = false;
+        int soldierProd = 3;
 
         public Archon(RobotController rc) {
                 super(rc);
         }
 
         public void loop() throws GameActionException{
-                while (true) {
-                        if (unitProd % 5 == 0) { //accidentally made production balanced since soldiers are more expensive than miners,
-                                tryBuild(RobotType.SOLDIER); //when an archon builds a soldier, it has to wait for every other archon to build miners.
-                        } else {
+
+                for (int i = 0; i < 3; i++) {
+                        if (rc.canBuildRobot(RobotType.MINER, Direction.NORTH)) {
                                 tryBuild(RobotType.MINER);
+                        } else {
+                                i--;
                         }
-                        System.out.println(unitProd);
+                }
+
+                while (true) {
+                        RobotInfo[] frens = rc.senseNearbyRobots(34, team);
+                        RobotInfo[] enmy = rc.senseNearbyRobots(34, team.opponent());
+
+                        if (NUM_ARCHON > 1 && unitProd > NUM_ARCHON) {
+                                wait = true;
+                        }
+
+                        if (turn > 500) {
+                                soldierProd = 2;
+                        }
+
+                        if (!wait && rc.getTeamLeadAmount(team) > reserve) {
+                                int buildStat = -3;
+                                if ((getNumMiners(frens) >= 3 || enmy.length > 0 || unitProd / soldierProd >= 1)) {
+                                        buildStat = tryBuild(RobotType.SOLDIER);
+                                } else {
+                                        buildStat = tryBuild(RobotType.MINER);
+                                }
+                                if (buildStat < 0) {
+                                       healLowest(frens, RobotType.SOLDIER);
+                                }
+                        } else {
+                                healLowest(frens);
+                                unitProd--;
+                                if (unitProd == 0) {
+                                        wait = false;
+                                }
+                        }
+
                         Clock.yield();
                 }
         }
 
-        private void tryBuild(RobotType t) throws GameActionException {
+        private int tryBuild(RobotType t) throws GameActionException {
 
-                boolean poor = false;
-
-                if (rc.getTeamLeadAmount(rc.getTeam()) < t.buildCostLead) {
-                        poor = true;
-                        //return -1;
-                } else if (rc.getTeamGoldAmount(rc.getTeam()) < t.buildCostGold) {
-                        poor = true;
-                        //return -2;
+                if (rc.getTeamLeadAmount(team) < t.buildCostLead) {
+                        return -1;
+                } else if (rc.getTeamGoldAmount(team) < t.buildCostGold) {
+                        return -1;
                 }
                 int i = 0;
-                while (i < 8 && !rc.canBuildRobot(t, directions[i]) && !poor) {
+                while (i < 8 && !rc.canBuildRobot(t, directions[i])) {
                         i++;
                 }
                 if(i < 8 && rc.canBuildRobot(t, directions[i]) && rc.isActionReady()) {
                         rc.buildRobot(t, directions[i]);
                         unitProd++;
-                } else{
-                        //return -3;
+                        return 0;
                 }
+                return -2;
+        }
 
-                //return 0;
+        private int getNumMiners(RobotInfo[] l) throws GameActionException {
+                int num = 0;
+                for (RobotInfo b : l) {
+                        if (b.type == RobotType.MINER) {
+                                num++;
+                        }
+                }
+                return num;
+        }
+
+        private void healLowest(RobotInfo[] arr, RobotType t) throws GameActionException{
+                RobotInfo targ = getLowestHealth(arr, t);
+                if (targ != null && rc.canAttack(targ.location)) { //change this to only target robots in range and so it always heals when possible.
+                        rc.attack(targ.location);
+                }
+        }
+
+        private void healLowest(RobotInfo[] arr) throws GameActionException{
+                RobotInfo targ = getLowestHealth(arr);
+                if (targ != null && rc.canAttack(targ.location)) { //change this to only target robots in range and so it always heals when possible.
+                        rc.attack(targ.location);
+                }
         }
 }
