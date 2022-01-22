@@ -20,6 +20,7 @@ public abstract strictfp class Base {
         this.rc = rc;
     }
     public abstract void loop() throws GameActionException;
+    public int savedIndex = -1; //index for the array
 
     static final int UNIT_VIS_RAD = 20;
 
@@ -50,6 +51,24 @@ public abstract strictfp class Base {
             }
         } else {
             tryMove(Direction.NORTH);
+        }
+    }
+
+    public void randomDiag() throws GameActionException { // randomly moves diagonally
+        int vis = (int) Math.sqrt(UNIT_VIS_RAD);
+        MapLocation loc = rc.getLocation();
+        int randomNum = 1 + (int)(Math.random() * ((4 - 1) + 1));
+        if (randomNum == 1) {
+            tryMove(Direction.NORTHEAST);
+        }
+        else if (randomNum == 2) {
+            tryMove(Direction.NORTHWEST);
+        }
+        else if (randomNum == 3) {
+            tryMove(Direction.SOUTHEAST);
+        }
+        else {
+            tryMove(Direction.SOUTHWEST);
         }
     }
 
@@ -151,17 +170,35 @@ public abstract strictfp class Base {
 
     /**
      * We don't have time to write a bit-encoder, so we're going with simple decimal based comms.
-     * @param fir priority, 0 nothing, 1 archon imminent danger, 2 enemy archon, 3 large lead vein, 4 enemy spotted
-     * @param sec tens digit x coor
-     * @param thi ones digit x coor
-     * @param fou tens digit y coor
-     * @param fiv ones digit y coor
+     * @param fir priority, 0 nothing, 2 archon imminent danger, 1 enemy archon, 4 large lead vein, 3 enemy spotted
+     * @param tar target MapLocation
      * @param ind index
      * @throws GameActionException invalid number
      */
-    public void writeComms(int fir, int sec, int thi, int fou, int fiv, int ind) throws GameActionException{
+    public void writeComms(int fir, MapLocation tar, int ind) throws GameActionException{
+        int sec = tar.x / 10;
+        int thi = tar.x % 10;
+        int fou = tar.y / 10;
+        int fiv = tar.y % 10;
+
         int msg = (fir * 10000) + (sec * 1000) + (thi * 100) + (fou * 10) + fiv;
         rc.writeSharedArray(ind, msg);
+    }
+
+    public void resetComm(int ind) throws GameActionException{
+        rc.writeSharedArray(ind, 0);
+    }
+
+    public MapLocation readComms(int ind) throws GameActionException{
+        int info = rc.readSharedArray(ind);
+        MapLocation target;
+        info = info % 10000;
+        int x = ((info / 1000) * 10) + ((info % 1000) / 100);
+        int y = (((info % 100) / 10) * 10) + (info % 10);
+
+        target = new MapLocation(x, y);
+
+        return target;
     }
 
 }

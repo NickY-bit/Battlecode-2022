@@ -7,9 +7,13 @@ public strictfp class Miner extends Base {
     public Miner(RobotController rc) {
         super(rc);
     }
-
     public void loop() throws GameActionException{
+        MapLocation[] mapArr = rc.senseNearbyLocationsWithLead();
+            for (int i = 0; i < mapArr.length; i++) {
+                System.out.println("THERE IS LEAD HERE AT "+mapArr[i]);
+            }
         while(true) {
+            int p = 1 + (int)(Math.random() * ((2 - 1) + 1));
 
             //replace this its just the example code
             MapLocation me = rc.getLocation();
@@ -26,7 +30,12 @@ public strictfp class Miner extends Base {
             }
 
             if (rc.isActionReady()) {
-                followEdge();
+                if (p == 1) {
+                    followEdge();
+                }
+                else {
+                    randomDiag();
+                }
             }
             Clock.yield();
         }

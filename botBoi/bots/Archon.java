@@ -18,6 +18,8 @@ public strictfp class Archon extends Base {
 
         public void loop() throws GameActionException{
 
+                MapLocation selfLoc = rc.getLocation();
+
                 for (int i = 0; i < 3; i++) {
                         if (rc.canBuildRobot(RobotType.MINER, Direction.NORTH)) {
                                 tryBuild(RobotType.MINER);
@@ -28,23 +30,39 @@ public strictfp class Archon extends Base {
                 }
 
                 while (true) {
-                        System.out.println("I am an archon and I have produced " + unitProd + " units!");
+                        //System.out.println("I am an archon and I have produced " + unitProd + " units!");
                         RobotInfo[] frens = rc.senseNearbyRobots(34, team);
                         RobotInfo[] enmy = rc.senseNearbyRobots(34, team.opponent());
 
                         if (NUM_ARCHON > 1 && unitProd > NUM_ARCHON && !wait) {
                                 wait = true;
-                                System.out.println("I am waiting");
+                                //System.out.println("I am waiting");
                         }
 
                         if (turn > 500) {
                                 soldierProd = 2;
                         }
 
+                        if (enmy.length > 0) {
+                                if (getNumUnits(enmy, RobotType.SOLDIER) > 0) {
+                                        for (int i = 0; i < 64; i++) {
+                                                int arr = rc.readSharedArray(i);
+                                                if (arr == 0) {
+                                                        writeComms(2, rc.getLocation(), i);
+                                                        savedIndex = i;
+                                                        break;
+                                                }
+                                        }
+                                } else if (savedIndex >= 0){
+                                        resetComm(savedIndex);
+                                        savedIndex = -1;
+                                }
+                        }
+
                         if (!wait) {
                                 if (rc.getTeamLeadAmount(team) > reserve || enmy.length > 0) {
                                         int buildStat = -3;
-                                        if ((getNumMiners(frens) >= 3 || enmy.length > 0 || unitProd / soldierProd >= 1)) {
+                                        if ((getNumUnits(frens, RobotType.MINER) >= 3 || enmy.length > 0 || unitProd / soldierProd >= 1)) {
                                                 buildStat = tryBuild(RobotType.SOLDIER);
                                         } else {
                                                 buildStat = tryBuild(RobotType.MINER);
@@ -58,9 +76,9 @@ public strictfp class Archon extends Base {
                                         healLowest(frens);
                                 }
                                 unitProd--;
-                                if (unitProd <= 0) {
+                                if (unitProd < 1) {
                                         wait = false;
-                                        System.out.println("I am done waiting");
+                                        //System.out.println("I am done waiting");
                                 }
                         }
 
@@ -87,10 +105,10 @@ public strictfp class Archon extends Base {
                 return -2;
         }
 
-        private int getNumMiners(RobotInfo[] l) throws GameActionException {
+        private int getNumUnits(RobotInfo[] l, RobotType t) throws GameActionException {
                 int num = 0;
                 for (RobotInfo b : l) {
-                        if (b.type == RobotType.MINER) {
+                        if (b.type == t) {
                                 num++;
                         }
                 }
