@@ -122,9 +122,8 @@ public abstract strictfp class Base {
      * @param arr array of robots to be scanned
      * @param t type of robot
      * @return RobotInfo of lowest hp bot, null if there are no valid bots.
-     * @throws GameActionException
      */
-    public RobotInfo getLowestHealth(RobotInfo[] arr, RobotType t) throws GameActionException{
+    public RobotInfo getLowestHealth(RobotInfo[] arr, RobotType t){
 
         RobotInfo lowest = null;
 
@@ -137,7 +136,7 @@ public abstract strictfp class Base {
         return lowest;
     }
 
-    public RobotInfo getLowestHealth(RobotInfo[] arr) throws GameActionException{
+    public RobotInfo getLowestHealth(RobotInfo[] arr){
 
         RobotInfo lowest = null;
 
@@ -150,5 +149,19 @@ public abstract strictfp class Base {
         return lowest;
     }
 
-    //add communication later
+    /**
+     * We don't have time to write a bit-encoder, so we're going with simple decimal based comms.
+     * @param fir priority, 0 nothing, 1 archon imminent danger, 2 enemy archon, 3 large lead vein, 4 enemy spotted
+     * @param sec tens digit x coor
+     * @param thi ones digit x coor
+     * @param fou tens digit y coor
+     * @param fiv ones digit y coor
+     * @param ind index
+     * @throws GameActionException invalid number
+     */
+    public void writeComms(int fir, int sec, int thi, int fou, int fiv, int ind) throws GameActionException{
+        int msg = (fir * 10000) + (sec * 1000) + (thi * 100) + (fou * 10) + fiv;
+        rc.writeSharedArray(ind, msg);
+    }
+
 }

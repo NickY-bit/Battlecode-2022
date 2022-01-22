@@ -22,38 +22,48 @@ public strictfp class Archon extends Base {
                 for (int i = 0; i < 3; i++) {
                         if (rc.canBuildRobot(RobotType.MINER, Direction.NORTH)) {
                                 tryBuild(RobotType.MINER);
+                                unitProd--;
                         } else {
                                 i--;
                         }
                 }
 
                 while (true) {
+                        System.out.println("I am an archon and I have produced " + unitProd + " units!");
                         RobotInfo[] frens = rc.senseNearbyRobots(34, team);
                         RobotInfo[] enmy = rc.senseNearbyRobots(34, team.opponent());
 
-                        if (NUM_ARCHON > 1 && unitProd > NUM_ARCHON) {
+                        
+
+                        if (NUM_ARCHON > 1 && unitProd > NUM_ARCHON && !wait) {
                                 wait = true;
+                                System.out.println("I am waiting");
                         }
 
                         if (turn > 500) {
                                 soldierProd = 2;
                         }
 
-                        if (!wait && rc.getTeamLeadAmount(team) > reserve) {
-                                int buildStat = -3;
-                                if ((getNumMiners(frens) >= 3 || enmy.length > 0 || unitProd / soldierProd >= 1)) {
-                                        buildStat = tryBuild(RobotType.SOLDIER);
-                                } else {
-                                        buildStat = tryBuild(RobotType.MINER);
-                                }
-                                if (buildStat < 0) {
-                                       healLowest(frens, RobotType.SOLDIER);
+                        if (!wait) {
+                                if (rc.getTeamLeadAmount(team) > reserve || enmy.length > 0) {
+                                        int buildStat = -3;
+                                        if ((getNumMiners(frens) >= 3 || enmy.length > 0 || unitProd / soldierProd >= 1)) {
+                                                buildStat = tryBuild(RobotType.SOLDIER);
+                                        } else {
+                                                buildStat = tryBuild(RobotType.MINER);
+                                        }
+                                        if (buildStat < 0) {
+                                                healLowest(frens, RobotType.SOLDIER);
+                                        }
                                 }
                         } else {
-                                healLowest(frens);
+                                if(rc.isActionReady()) {
+                                        healLowest(frens);
+                                }
                                 unitProd--;
-                                if (unitProd == 0) {
+                                if (unitProd <= 0) {
                                         wait = false;
+                                        System.out.println("I am done waiting");
                                 }
                         }
 
