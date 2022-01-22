@@ -78,7 +78,7 @@ public strictfp class Soldier extends Base {
                         priority = 6;
                         savedIndex = -1;
                     }
-                    if (i == 63) { // this is not working as intended but it actually breaks anything so im not fixing it for now
+                    if (i == 63) { // this is not working as intended but it doesn't actually break anything so im not fixing it for now
                         priority = 6;
                     }
                 }
