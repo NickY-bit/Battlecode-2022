@@ -1,7 +1,6 @@
 package botBoi.bots;
 
 import battlecode.common.*;
-import java.util.*;
 
 public strictfp class Archon extends Base {
 
@@ -32,8 +31,6 @@ public strictfp class Archon extends Base {
                         System.out.println("I am an archon and I have produced " + unitProd + " units!");
                         RobotInfo[] frens = rc.senseNearbyRobots(34, team);
                         RobotInfo[] enmy = rc.senseNearbyRobots(34, team.opponent());
-
-                        
 
                         if (NUM_ARCHON > 1 && unitProd > NUM_ARCHON && !wait) {
                                 wait = true;
