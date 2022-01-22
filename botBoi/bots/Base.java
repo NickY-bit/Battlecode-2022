@@ -58,6 +58,32 @@ public abstract strictfp class Base {
         }
     }
 
+    public void followEdgeRev() throws GameActionException { // use map size and spawn location to find the closest edge
+        int vis = (int) Math.sqrt(UNIT_VIS_RAD);
+        MapLocation loc = rc.getLocation();
+        if (!rc.onTheMap(loc.translate(0, vis))) {
+            if (!rc.onTheMap(loc.translate(vis, 0))) {
+                tryMove(Direction.NORTH);
+            } else {
+                tryMove(Direction.WEST);
+            }
+        } else if (!rc.onTheMap(loc.translate(vis, 0))) {
+            if (!rc.onTheMap(loc.translate(0, -vis))) {
+                tryMove(Direction.EAST);
+            } else {
+                tryMove(Direction.NORTH);
+            }
+        } else if (!rc.onTheMap(loc.translate(0, -vis))) {
+            if (!rc.onTheMap(loc.translate(-vis, 0))) {
+                tryMove(Direction.SOUTH);
+            } else {
+                tryMove(Direction.EAST);
+            }
+        } else {
+            tryMove(Direction.SOUTH);
+        }
+    }
+
     public void randomDiag() throws GameActionException { // randomly moves diagonally
         int vis = (int) Math.sqrt(UNIT_VIS_RAD);
         MapLocation loc = rc.getLocation();
@@ -71,8 +97,18 @@ public abstract strictfp class Base {
         else if (randomNum == 3) {
             tryMove(Direction.SOUTHEAST);
         }
-        else{
+        else if (randomNum == 4) {
             tryMove(Direction.SOUTHWEST);
+        }
+    }
+
+    public void movePreset(int p) throws GameActionException {
+        if (p == 1) {
+            followEdge();
+        } else if (p == 2) {
+            followEdgeRev();
+        } else {
+            randomDiag();
         }
     }
 
@@ -232,6 +268,48 @@ public abstract strictfp class Base {
         return false;
     }
 
+    /**
+     * Write a message to the sharedArray of bots' locations
+     * @param b array of robots to be tagged
+     * @throws GameActionException
+     */
+    public void tagBots(RobotInfo[] b) throws GameActionException{
+        for (RobotInfo bot : b) {
+            if (!msgAlreadyExists(1, bot.location)) {
+                for (int i = 0; i < 64; i++) {
+                    int arr = rc.readSharedArray(i);
+                    if (arr == 0) {
+                        writeComms(1, bot.location, i);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    public void tagLoc(MapLocation l) throws GameActionException{
+        boolean redundant = false;
+        outer:
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dy = -2; dy <= 2; dy++) {
+                MapLocation tagLoc = new MapLocation(l.x + dx, l.y + dy);
+                if (msgAlreadyExists(4, tagLoc)) {
+                    redundant = true;
+                    break outer;
+                }
+            }
+        }
+        if (!redundant) {
+            for (int i = 0; i < 64; i++) {
+                int arr = rc.readSharedArray(i);
+                if (arr == 0) {
+                    writeComms(4, l, i);
+                    break;
+                }
+            }
+        }
+    }
+
     public int getNumUnits(RobotInfo[] l, RobotType t) {
         int num = 0;
         for (RobotInfo b : l) {
@@ -259,6 +337,19 @@ public abstract strictfp class Base {
         int dy = targ.y - self.y;
         int d = (int) Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
         return d;
+    }
+
+    public MapLocation meanLocation(MapLocation[] locs) {
+        int x = 0;
+        int y = 0;
+        for (MapLocation l : locs) {
+            x += l.x;
+            y += l.y;
+        }
+        x /= locs.length;
+        y /= locs.length;
+
+        return new MapLocation(x, y);
     }
 
 }

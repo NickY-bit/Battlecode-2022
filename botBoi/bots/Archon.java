@@ -58,14 +58,12 @@ public strictfp class Archon extends Base {
                                                 if (arr == 0) {
                                                         writeComms(2, rc.getLocation(), i);
                                                         savedIndex = i;
-                                                        System.out.println("I'm in danger");
                                                         break;
                                                 }
                                         }
                                 }
                         } else if (savedIndex >= 0 && enmy.length == 0){
                                 resetComm(savedIndex);
-                                System.out.println(savedIndex + ", " + readComms(savedIndex));
                                 savedIndex = -1;
                         }
 

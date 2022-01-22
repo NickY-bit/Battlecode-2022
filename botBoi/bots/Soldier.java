@@ -13,6 +13,7 @@ public strictfp class Soldier extends Base {
     public void loop() throws GameActionException{
 
         int priority = 6;
+        int p = 1 + (int)(Math.random() * 3);
         MapLocation target = new MapLocation(-1, -1);
 
         while (true) {
@@ -22,44 +23,29 @@ public strictfp class Soldier extends Base {
             RobotInfo[] enmyArchons = getArrUnits(enmy, RobotType.ARCHON);
 
             if (enmyArchons.length > 0) {
-                RobotInfo nearest = enmyArchons[0];
-                for (RobotInfo arch : enmyArchons) {
-                    if (target != arch.location && !msgAlreadyExists(1, arch.location)) {
-                        for (int i = 0; i < 64; i++) {
-                            int arr = rc.readSharedArray(i);
-                            if (arr == 0) {
-                                writeComms(1, arch.location, i);
-                                break;
-                            }
-                        }
-                    }
-                    if (distanceTo(me, arch.location) < distanceTo(me, nearest.location)) {
-                        nearest = arch;
-                    }
-                }
+                tagBots(enmyArchons);
             }
 
             if (target.x != -1 && rc.canSenseLocation(target)) {
-                System.out.println("Contact made with target at " + target + " I am at " + me);
+                //System.out.println("Contact made with target at " + target + " I am at " + me);
                 if (rc.canSenseRobotAtLocation(target)) {
-                    System.out.println("Something on the target spot");
+                    //.out.println("Something on the target spot");
                     RobotInfo targBot = rc.senseRobotAtLocation(target);
                     if (targBot.team == team) {
                         target = new MapLocation(-1, -1);
-                        System.out.println(savedIndex);
                         resetComm(savedIndex);
-                        System.out.println("Archon bonked " + rc.readSharedArray(savedIndex));
+                        //System.out.println("Archon bonked " + rc.readSharedArray(savedIndex));
                         savedIndex = -1;
                     }
                 } else if (savedIndex >= 0){
                     target = new MapLocation(-1, -1);
                     resetComm(savedIndex);
-                    System.out.println("Archon bonked " + rc.readSharedArray(savedIndex));
+                    //System.out.println("Archon bonked " + rc.readSharedArray(savedIndex));
                     savedIndex = -1;
                 }
             } else if (target.x != -1 && savedIndex >= 0) {
                 if (readComms(savedIndex) == null) {
-                    System.out.println("Awaiting orders");
+                    //System.out.println("Awaiting orders");
                     target = new MapLocation(-1, -1);
                 }
             }
@@ -68,7 +54,7 @@ public strictfp class Soldier extends Base {
                 for (int i = 0; i < 64; i++) {
                     int info = rc.readSharedArray(i);
                     if (info != 0) {
-                        if (info / 10000 < priority) {
+                        if (info / 10000 < priority && info / 10000 < 3) {
                             //System.out.println("Acquired new target " + readComms(i));
                             priority = info / 10000;
                             target = readComms(i);
@@ -82,11 +68,23 @@ public strictfp class Soldier extends Base {
                         priority = 6;
                     }
                 }
-            } else if (me.x != target.x && me.y != target.y) {
+            } else if (me.x != target.x && me.y != target.y && priority == 1) {
                 if (!rc.canAttack(target)) {
                     tryMove(me.directionTo(target));
                 } else {
                     rc.attack(target);
+                }
+            } else if (priority == 2) {
+                if (!rc.canSenseLocation(target)) {
+                    tryMove(me.directionTo(target));
+                } else {
+                    attackRng(enmy);
+                }
+            } else if (priority >= 3) {
+                if (Math.pow(distanceTo(me, target), 2) < 25) {
+                    if (!attackRng(enmy)) {
+                        tryMove(me.directionTo(target));
+                    }
                 }
             }
 
@@ -97,17 +95,11 @@ public strictfp class Soldier extends Base {
                 }
             } else if (savedIndex >= 0 && target.x == me.x && target.y == me.y){
                 resetComm(savedIndex);
-                System.out.println("Threat neutralized " + rc.readSharedArray(savedIndex));
+                //System.out.println("Threat neutralized " + rc.readSharedArray(savedIndex));
                 savedIndex = -1;
             } else {
-                int p = 1 + (int)(Math.random() * 2);
                 if (!attackRng(enmy)) {
-                    if (p == 1) {
-                       followEdge();
-                    }
-                    else {
-                       randomDiag();
-                    }
+                    movePreset(p);
                 }
             }
 
